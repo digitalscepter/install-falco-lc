@@ -68,10 +68,9 @@ DISTRO_CODENAME="$(lsb_release -cs)"
 
 echo ">>> Installing Puppet agent from Puppetlabs APT repository (Puppet 8)…"
 
-DISTRO_VENDOR="$(lsb_release -is | tr '[:upper:]' '[:lower:]')"
-PUPPET_RELEASE_PKG="/tmp/puppet8-release-${DISTRO_VENDOR}-${DISTRO_CODENAME}.deb"
+PUPPET_RELEASE_PKG="/tmp/puppet8-release-${DISTRO_CODENAME}.deb"
 
-curl -sSL "https://apt.puppet.com/puppet8-release-${DISTRO_VENDOR}-${DISTRO_CODENAME}.deb" -o "${PUPPET_RELEASE_PKG}"
+curl -sSL "https://apt.puppet.com/puppet8-release-${DISTRO_CODENAME}.deb" -o "${PUPPET_RELEASE_PKG}"
 apt-get install -y "${PUPPET_RELEASE_PKG}"
 rm -f "${PUPPET_RELEASE_PKG}"
 
