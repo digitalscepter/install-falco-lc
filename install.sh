@@ -63,18 +63,43 @@ apt-get install -y curl ca-certificates lsb-release
 DISTRO_CODENAME="$(lsb_release -cs)"
 
 ########################################
-# Install Puppet agent from OS packages
+# Install Puppet agent from Puppetlabs APT repo (Puppet 8)
 ########################################
 
-echo ">>> Installing Puppet agent from OS repositories…"
-apt-get install -y puppet
+echo ">>> Installing Puppet agent from Puppetlabs APT repository (Puppet 8)…"
 
-PUPPET_BIN="$(command -v puppet || true)"
+DISTRO_VENDOR="$(lsb_release -is | tr '[:upper:]' '[:lower:]')"
+PUPPET_RELEASE_PKG="/tmp/puppet8-release-${DISTRO_VENDOR}-${DISTRO_CODENAME}.deb"
 
-if [ -z "${PUPPET_BIN}" ] || [ ! -x "${PUPPET_BIN}" ]; then
-  echo "Puppet binary not found in PATH after installation." >&2
+curl -sSL "https://apt.puppet.com/puppet8-release-${DISTRO_VENDOR}-${DISTRO_CODENAME}.deb" -o "${PUPPET_RELEASE_PKG}"
+apt-get install -y "${PUPPET_RELEASE_PKG}"
+rm -f "${PUPPET_RELEASE_PKG}"
+
+apt-get update -y
+apt-get install -y puppet-agent
+
+PUPPET_BIN="/opt/puppetlabs/bin/puppet"
+
+if [ ! -x "${PUPPET_BIN}" ]; then
+  echo "Puppet binary not found at ${PUPPET_BIN} after installation." >&2
   exit 1
 fi
+
+########################################
+# Add Puppet AIO bin path for human use
+########################################
+
+# Ensure PATH includes Puppet agent binaries for interactive shells
+cat >/etc/profile.d/puppet-agent-path.sh <<'EOF'
+export PATH="/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin:$PATH"
+EOF
+chmod 644 /etc/profile.d/puppet-agent-path.sh
+
+# Ensure sudo secure_path includes Puppet binaries
+cat >/etc/sudoers.d/puppet-agent-path <<'EOF'
+Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin"
+EOF
+chmod 440 /etc/sudoers.d/puppet-agent-path
 
 ########################################
 # Configure puppet.conf
